@@ -25,7 +25,7 @@ public:
 		@param spriteBatch A reference to the game's sprite batch, used for rendering. */
 	virtual void Draw(SpriteBatch& spriteBatch);
 
-
+	virtual Texture* GetTexture() { return m_pTexture; }
 private:
 
 	Texture *m_pTexture = nullptr;

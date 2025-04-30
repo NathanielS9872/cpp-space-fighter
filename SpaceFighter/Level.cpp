@@ -60,6 +60,14 @@ Level::Level()
 	m_pPlayerShip->Activate();
 	AddGameObject(m_pPlayerShip);
 
+	//Setup Items
+	for (int i = 0; i < 100; i++) {
+		Item* pItem = new Item();
+		m_pItems.push_back(pItem);
+		pItem->Deactivate();
+		AddGameObject(pItem);
+	}
+
 	// Setup collision types
 	CollisionManager *pC = GetCollisionManager();
 
@@ -103,6 +111,13 @@ void Level::LoadContent(ResourceManager& resourceManager)
 			pExplosion->SetSound(pExplosionSound);
 			s_explosions.push_back(pExplosion);
 		}
+	}
+
+	//Setup Items Part 2 (Textures)
+	Texture* pTexture = resourceManager.Load<Texture>("Textures\\Particle.png");
+	for (unsigned int i = 0; i < m_pItems.size(); i++)
+	{
+		m_pItems[i]->SetTexture(pTexture);
 	}
 }
 
@@ -202,6 +217,29 @@ void Level::SpawnExplosion(GameObject *pExplodingObject)
 }
 
 
+void Level::SpawnItem(GameObject* pItemSpawner)
+{
+	Item* pItem = nullptr;
+	for (unsigned int i = 0; i < m_pItems.size(); i++)
+	{
+		if (!m_pItems[i]->IsActive())
+		{
+			pItem = m_pItems[i];
+			break;
+		}
+	}
+
+	if (!pItem) return;
+
+	const float aproximateTextureRadius = 120;
+	const float objectRadius = pItemSpawner->GetCollisionRadius();
+	const float scaleToObjectSize = (1 / aproximateTextureRadius) * objectRadius * 2;
+	const float dramaticEffect = 2.2f;
+	const float scale = scaleToObjectSize * dramaticEffect;
+	pItem->Activate(pItemSpawner->GetPosition(), scale);
+	m_gameObjects.push_back(pItem);
+}
+
 float Level::GetAlpha() const
 {
 	return GetGameplayScreen()->GetAlpha();
@@ -253,5 +291,6 @@ void Level::Draw(SpriteBatch& spriteBatch)
 	// Explosions use additive blending so they need to be drawn after the main sprite batch
 	spriteBatch.Begin(SpriteSortMode::Deferred, BlendState::Additive);
 	for (Explosion* pExplosion : s_explosions) pExplosion->Draw(spriteBatch);
+	for (Item* pItem: m_pItems) pItem->Draw(spriteBatch);
 	spriteBatch.End();
 }
