@@ -27,7 +27,14 @@ void PlayerCollidesWithEnemy(GameObject *pObject1, GameObject *pObject2)
 	pPlayerShip->Hit(std::numeric_limits<float>::max());
 	pEnemyShip->Hit(std::numeric_limits<float>::max());
 }
-
+void ItemCollected(GameObject* pObject1, GameObject* pObject2) {
+	std::cout << "Item Collected\n";
+	bool m = pObject1->HasMask(CollisionType::Player);
+	PlayerShip* pPlayerShip = (PlayerShip*)((m) ? pObject1 : pObject2);
+	Item* pItem = (Item*)((!m) ? pObject1 : pObject2);
+	pItem->Deactivate();
+	pPlayerShip->SetSpeed(pPlayerShip->GetSpeed() + 50);
+}
 
 Level::Level()
 {
@@ -66,6 +73,7 @@ Level::Level()
 		m_pItems.push_back(pItem);
 		pItem->Deactivate();
 		AddGameObject(pItem);
+		pItem->Deactivate();
 	}
 
 	// Setup collision types
@@ -74,12 +82,13 @@ Level::Level()
 	CollisionType playerShip = (CollisionType::Player | CollisionType::Ship);
 	CollisionType playerProjectile = (CollisionType::Player | CollisionType::Projectile);
 	CollisionType enemyShip = (CollisionType::Enemy | CollisionType::Ship);
-
+	CollisionType droppedItem = (CollisionType::Item);
 	pC->AddNonCollisionType(playerShip, playerProjectile);
+	pC->AddNonCollisionType(playerProjectile, droppedItem);
 	pC->AddCollisionType(playerProjectile, enemyShip, PlayerShootsEnemy);
 	pC->AddCollisionType(playerShip, enemyShip, PlayerCollidesWithEnemy);
+	pC->AddCollisionType(playerShip, droppedItem, ItemCollected);
 }
-
 Level::~Level()
 {
 	delete[] m_pSectors;
